@@ -21,20 +21,18 @@ Or install it yourself as:
 Usage
 -----
 
-First, please write settings to ~/.autotest or .autotest in project directroy.
+First, please write configuration to ~/.autotest or .autotest in project directroy.
 
     require 'autotest-twitter'
 
-    Autotest.add_hook :initialize do
-      Autotest::Twitter.configure do |client|
-        # The following settings is required
-        client.consumer     = ['your consumer key', 'your consumer secret']
-        client.access_token = ['your access token', 'your access token secret']
+    Autotest::Twitter.configure do |config|
+      # The following settings is required
+      config.consumer     = ['your consumer key', 'your consumer secret']
+      config.access_token = ['your access token', 'your access token secret']
 
-        # The following settings is optional
-        client.label     = 'any project'
-        client.image_dir = 'path/to/images'
-      end
+      # The following settings is optional
+      config.label     = 'any project'
+      config.image_dir = 'path/to/images'
     end
 
 So please autotest.

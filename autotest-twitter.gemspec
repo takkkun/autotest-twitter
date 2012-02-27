@@ -15,5 +15,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Autotest::Twitter::VERSION
 
-  gem.add_runtime_dependency 'oauth'
+  gem.add_runtime_dependency 'twitter'
 end

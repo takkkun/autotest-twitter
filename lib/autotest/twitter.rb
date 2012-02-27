@@ -1,8 +1,9 @@
 require 'rubygems'
 require 'autotest'
+require 'twitter'
 
 require 'autotest/twitter/version'
-require 'autotest/twitter/client'
+require 'autotest/twitter/config'
 require 'autotest/twitter/state'
 require 'autotest/twitter/result'
 
@@ -10,13 +11,26 @@ class Autotest
   module Twitter
     extend self
 
-    def configure
-      @client = Client.new
-      yield(@client) if block_given?
-    end
-
     def update(status, icon = nil)
-      @client.update(status, icon)
+      unless @twitter
+        @twitter = ::Twitter.new(
+          :consumer_key       => config.consumer_key,
+          :consumer_secret    => config.consumer_secret,
+          :oauth_token        => config.oauth_token,
+          :oauth_token_secret => config.oauth_token_secret
+        )
+
+        @label = config.label
+        @image_dir = config.image_dir
+      end
+
+      if @image_dir && icon
+        path = File.join(@image_dir, "#{icon}.png")
+        @twitter.update_profile_image(File.new(path)) if File.exists?(path)
+      end
+
+      status = "#{@label}: #{status}" unless @label.nil? || @label.empty?
+      @twitter.update(status)
     end
 
     def with_test_unit(result)
