@@ -26,7 +26,7 @@ First, please write settings to ~/.autotest or .autotest in project directroy.
     require 'autotest-twitter'
 
     Autotest.add_hook :initialize do
-      @client = Autotest::Twitter::Client.new do |client|
+      Autotest::Twitter.configure do |client|
         # The following settings is required
         client.consumer     = ['your consumer key', 'your consumer secret']
         client.access_token = ['your access token', 'your access token secret']
