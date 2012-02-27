@@ -1,4 +1,4 @@
-module Autotest
+class Autotest
   module Twitter
     class State
       def initialize

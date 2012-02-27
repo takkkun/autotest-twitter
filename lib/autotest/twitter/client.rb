@@ -1,6 +1,6 @@
 require 'oauth'
 
-module Autotest
+class Autotest
   module Twitter
     class Client
       def initialize

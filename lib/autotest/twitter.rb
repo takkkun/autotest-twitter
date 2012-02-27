@@ -5,7 +5,7 @@ require 'autotest/twitter/version'
 require 'autotest/twitter/client'
 require 'autotest/twitter/result'
 
-module Autotest
+class Autotest
   module Twitter
     def with_test_unit(result)
       if result.has?('test-error')
