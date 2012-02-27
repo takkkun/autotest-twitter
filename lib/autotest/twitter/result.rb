@@ -4,7 +4,7 @@ class Autotest
       def initialize(autotest)
         @numbers = {}
         lines = autotest.results.map {|s| s.gsub(/(\e.*?m|\n)/, '') }
-        lines.reject! {|line| !line.match(/\d+\s+(example|test|scenario|step)s?/) }
+        lines.reject! {|line| !line.match(/\d+\s+(example|test|step)s?/) }
 
         lines.each do |line|
           prefix = nil
@@ -24,9 +24,8 @@ class Autotest
 
       def framework
         case
-        when @numbers['test']     then 'test-unit'
-        when @numbers['example']  then 'rspec'
-        when @numbers['scenario'] then 'cucumber'
+        when @numbers['test']    then 'test-unit'
+        when @numbers['example'] then 'rspec'
         end
       end
 

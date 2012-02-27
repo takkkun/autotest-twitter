@@ -4,83 +4,63 @@ require 'twitter'
 
 require 'autotest/twitter/version'
 require 'autotest/twitter/config'
-require 'autotest/twitter/state'
 require 'autotest/twitter/result'
 
 class Autotest
   module Twitter
     extend self
 
-    def update(status, icon = nil)
-      unless @twitter
-        @twitter = ::Twitter.new(
-          :consumer_key       => config.consumer_key,
-          :consumer_secret    => config.consumer_secret,
-          :oauth_token        => config.oauth_token,
-          :oauth_token_secret => config.oauth_token_secret
-        )
+    def update(vars)
+      vars.update(:label => config.label || File.basename(Dir.pwd)) unless vars.key?(:label)
 
-        @label = config.label
-        @image_dir = config.image_dir
+      @twitter ||= ::Twitter.new(
+        :consumer_key       => config.consumer_key,
+        :consumer_secret    => config.consumer_secret,
+        :oauth_token        => config.oauth_token,
+        :oauth_token_secret => config.oauth_token_secret
+      )
+
+      result = [:missing, :error, :failed, :pending].find {|r| vars.key?(r) } || :passed
+
+      if config.image_dir
+        path = File.join(config.image_dir, "#{result}.png")
+
+        if File.exists?(path)
+          print 'Icon updating ...'
+          user = @twitter.update_profile_image(File.new(path))
+          puts " :profile_image_url => #{user['profile_image_url']}"
+        end
       end
 
-      if @image_dir && icon
-        path = File.join(@image_dir, "#{icon}.png")
-        @twitter.update_profile_image(File.new(path)) if File.exists?(path)
+      message = config.pick_message(result) or raise "Not found the message associated with #{result}"
+
+      status = message.gsub(/\$[a-zA-Z_]\w*/) do |m|
+        name = m[1..-1]
+        vars[name.to_sym] or raise "Variable is missing: #{name}"
       end
 
-      status = "#{@label}: #{status}" unless @label.nil? || @label.empty?
       @twitter.update(status)
+    rescue => e
+      puts "#{e.class}: #{e.message}"
     end
 
     def with_test_unit(result)
-      if result.has?('test-error')
-        ["#{result.get('test-error')} in #{result.get('test')}", :error]
-      elsif result.has?('test-failed')
-        ["#{result['test-failed']} of #{result.get('test-assertion')} in #{result.get('test')} failed", :failed]
-      else
-        ["#{result.get('test-assertion')} in #{result.get('test')}", :passed]
-      end
+      vars = {:all => result.get('test-assertion').to_i, :test => result.get('test')}
+      vars[:error]  = result.get('test-error').to_i  if result.has?('test-error')
+      vars[:failed] = result.get('test-failed').to_i if result.has?('test-failed')
+      vars
     end
 
     def with_rspec(result)
-      if result.has?('example-failed')
-        ["#{result['example-failed']} of #{result.get('example')} failed", :failed]
-      elsif result.has?('example-pending')
-        ["#{result['example-pending']} of #{result.get('example')} pending", :pending]
-      else
-        ["#{result.get('example')}", :passed]
-      end
+      vars = {:all => result.get('example').to_i}
+      vars[:failed]  = result['example-failed'].to_i  if result.has?('example-failed')
+      vars[:pending] = result['example-pending'].to_i if result.has?('example-pending')
+      vars
     end
-
-    def with_cucumber(result)
-      explanation = []
-
-      if result.has?('scenario-undefined') || result.has?('step-undefined')
-        explanation << "#{result['scenario-undefined']} of #{result.get('scenario')} not defined" if result['scenario-undefined']
-        explanation << "#{result['step-undefined']} of #{result.get('step')} not defined" if result['step-undefined']
-        ["#{explanation.join("\n")}", :pending]
-      elsif result.has?('scenario-failed') || result.has?('step-failed')
-        explanation << "#{result['scenario-failed']} of #{result.get('scenario')} failed" if result['scenario-failed']
-        explanation << "#{result['step-failed']} of #{result.get('step')} failed" if result['step-failed']
-        ["#{explanation.join("\n")}", :failed]
-      elsif result.has?('scenario-pending') || result.has?('step-pending')
-        explanation << "#{result['scenario-pending']} of #{result.get('scenario')} pending" if result['scenario-pending']
-        explanation << "#{result['step-pending']} of #{result.get('step')} pending" if result['step-pending']
-        ["#{explanation.join("\n")}", :pending]
-      else
-        ['', :passed]
-      end
-    end
-  end
-
-  add_hook :initialize do
-    @state = Twitter::State.new
-    false
   end
 
   add_hook :updated do
-    @state.clear
+    @ran = false
     false
   end
 
@@ -90,39 +70,23 @@ class Autotest
   end
 
   add_hook :ran_command do |autotest|
-    @state.ran_tests? do
+    unless @ran
       result = Twitter::Result.new(autotest)
 
       if result.exists?
         case result.framework
         when 'test-unit'
-          status, icon = Twitter.with_test_unit(result)
-          Twitter.update(status, icon)
+          vars = Twitter.with_test_unit(result)
+          Twitter.update(vars)
         when 'rspec'
-          status, icon = Twitter.with_rspec(result)
-          Twitter.update(status, icon)
+          vars = Twitter.with_rspec(result)
+          Twitter.update(vars)
         end
       else
-        Twitter.update('Could not run tests', :missing)
+        Twitter.update(:missing => true)
       end
-    end
 
-    false
-  end
-
-  add_hook :ran_features do |autotest|
-    @state.ran_features? do
-      result = Twitter::Result.new(autotest)
-
-      if result.exists?
-        case result.framework
-        when 'cucumber'
-          status, icon = Twitter.with_cucumber(result)
-          Twitter.update(status, icon)
-        end
-      else
-        Twitter.update('Could not run features', :missing)
-      end
+      @ran = true
     end
 
     false

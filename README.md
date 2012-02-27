@@ -27,8 +27,10 @@ First, please write configuration to ~/.autotest or .autotest in project directr
 
     Autotest::Twitter.configure do |config|
       # The following settings is required
-      config.consumer     = ['your consumer key', 'your consumer secret']
-      config.access_token = ['your access token', 'your access token secret']
+      config.consumer_key       = 'your consumer key'
+      config.consumer_secret    = 'your consumer secret'
+      config.oauth_token        = 'your access token'
+      config.oauth_token_secret = 'your access token secret'
 
       # The following settings is optional
       config.label     = 'any project'
