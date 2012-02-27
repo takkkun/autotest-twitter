@@ -11,33 +11,22 @@ class Autotest
         @ran_features = false
       end
 
-      def ran_tests
-        @ran_tests = true
-      end
-
-      def ran_tests?
-        if block_given?
-          unless @ran_tests
-            yield
-            ran_tests
-          end
-        else
-          @ran_tests
+      %w(tests features).each do |target|
+        define_method "ran_#{target}" do
+          instance_variable_set("@#{target}", true)
         end
-      end
 
-      def ran_features
-        @ran_features = true
-      end
+        define_method "ran_#{target}?" do
+          ran = instance_variable_get("@#{target}")
 
-      def ran_features?
-        if block_given?
-          unless @ran_features
-            yield
-            ran_features
+          if block_given?
+            unless ran
+              yield
+              __send__("ran_#{target}")
+            end
+          else
+            ran
           end
-        else
-          @ran_features
         end
       end
     end
