@@ -23,6 +23,8 @@ Usage
 
 First, please write settings to ~/.autotest or .autotest in project directroy.
 
+    require 'autotest-twitter'
+
     Autotest.add_hook :initialize do
       @client = Autotest::Twitter::Client.new do |client|
         # The following settings is required

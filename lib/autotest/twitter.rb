@@ -3,6 +3,7 @@ require 'autotest'
 
 require 'autotest/twitter/version'
 require 'autotest/twitter/client'
+require 'autotest/twitter/state'
 require 'autotest/twitter/result'
 
 class Autotest
