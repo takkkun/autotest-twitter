@@ -15,7 +15,7 @@ class Autotest
 
       def update(status, icon = nil)
         status = "#{label}: #{status}" unless label.nil? || label.empty?
-        @client.post('/statuses/update.json', :status => status)
+        client.post('/statuses/update.json', :status => status)
       end
 
       private

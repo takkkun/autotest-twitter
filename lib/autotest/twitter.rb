@@ -10,6 +10,15 @@ class Autotest
   module Twitter
     extend self
 
+    def configure
+      @client = Client.new
+      yield(@client) if block_given?
+    end
+
+    def update(status, icon = nil)
+      @client.update(status, icon)
+    end
+
     def with_test_unit(result)
       if result.has?('test-error')
         ["#{result.get('test-error')} in #{result.get('test')}", :error]
@@ -74,13 +83,13 @@ class Autotest
         case result.framework
         when 'test-unit'
           status, icon = Twitter.with_test_unit(result)
-          @client.update(status, icon)
+          Twitter.update(status, icon)
         when 'rspec'
           status, icon = Twitter.with_rspec(result)
-          @client.update(status, icon)
+          Twitter.update(status, icon)
         end
       else
-        @client.update('Could not run tests', :missing)
+        Twitter.update('Could not run tests', :missing)
       end
     end
 
@@ -95,10 +104,10 @@ class Autotest
         case result.framework
         when 'cucumber'
           status, icon = Twitter.with_cucumber(result)
-          @client.update(status, icon)
+          Twitter.update(status, icon)
         end
       else
-        @client.update('Could not run features', :missing)
+        Twitter.update('Could not run features', :missing)
       end
     end
 
