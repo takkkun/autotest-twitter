@@ -9,7 +9,7 @@ class Autotest
     end
 
     class Config
-      attr_reader :consumer_key, :consumer_secret, :oauth_token, :oauth_token_secret, :label, :image_dir
+      attr_accessor :consumer_key, :consumer_secret, :oauth_token, :oauth_token_secret, :label, :image_dir
     end
   end
 end
