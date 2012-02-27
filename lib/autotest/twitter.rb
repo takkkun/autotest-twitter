@@ -8,6 +8,8 @@ require 'autotest/twitter/result'
 
 class Autotest
   module Twitter
+    extend self
+
     def with_test_unit(result)
       if result.has?('test-error')
         ["#{result.get('test-error')} in #{result.get('test')}", :error]
