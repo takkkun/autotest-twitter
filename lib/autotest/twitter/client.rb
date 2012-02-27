@@ -30,7 +30,7 @@ class Autotest
         raise 'The number of elements in `consumer` must be at least two'     if consumer.size < 2
         raise 'The number of elements in `access_token` must be at least two' if access_token.size < 2
 
-        args = consumer + ['https://api.twitter.com/1']
+        args = consumer + [{:site => 'https://api.twitter.com/1'}]
         OAuth::AccessToken.new(OAuth::Consumer.new(*args), *access_token)
       end
     end
